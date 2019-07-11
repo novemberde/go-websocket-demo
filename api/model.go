@@ -10,14 +10,14 @@ type Room struct {
 }
 
 // Message Message table on DynamoDB
-type Message struct {
-	RoomID    string    `dynamo:"room_id"`    // pk
-	CreatedAt time.Time `dynamo:"created_at"` // sk
-	SenderID  int       `dynamo:"sender_id"`  // user_id
-	Content   string    `dynamo:"content"`    // Message content. string
-	// ArticleID int       `dynamo:"article_id"` // referenced article. nullable
-	// ImageURLs []string  `dynamo:"image_urls"`
-}
+// type Chat struct {
+// 	RoomID    string    `dynamo:"room_id"`    // pk
+// 	CreatedAt time.Time `dynamo:"created_at"` // sk
+// 	SenderID  int       `dynamo:"sender_id"`  // user_id
+// 	Content   string    `dynamo:"content"`    // Message content. string
+// 	// ArticleID int       `dynamo:"article_id"` // referenced article. nullable
+// 	// ImageURLs []string  `dynamo:"image_urls"`
+// }
 
 // UserRoom UserRoom table on DynamoDB
 // Get the room list of certain user.

@@ -19,10 +19,20 @@ func NewHub() *Hub {
 
 // Run Start websocket server.
 func (h *Hub) Run() {
+	/**
+	{
+		event: "channel_message",
+		channelId: body.channelId,
+		name,
+		content,
+	}
+	*/
+
 	for {
 		select {
 		case client := <-h.register:
 			// log.Println(client.)
+			// client.conn.
 			h.clients[client] = true
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {

@@ -10,6 +10,21 @@ import (
 )
 
 const (
+	ON_CONNECT          = "ON_CONNECT"
+	ON_DISCONNECT       = "ON_DISCONNECT"
+	SEND_GROUP_MESSAGE  = "ON_CONNECT"
+	SEND_DIRECT_MESSAGE = "ON_CONNECT"
+)
+
+type Message struct {
+	Event   string `json:"event"`
+	Message string `json:"message"`
+	// FIXME: SenderID should be set on server using token. UserID.
+	SenderID int    `json:"sender_id"`
+	RoomID   string `json:"room_id"`
+}
+
+const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10 // Must be less than pongWait
@@ -72,8 +87,8 @@ func (c *Client) writePump() {
 	}()
 	for {
 		select {
-		// TODO: case에 걸리는 시점이 언제인지 확인해야함
 		case message, ok := <-c.send:
+			// TODO: 채팅방에 보내야함.
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
