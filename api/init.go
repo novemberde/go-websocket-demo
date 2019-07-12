@@ -6,7 +6,7 @@ import "log"
 type Hub struct {
 	clients    map[*Client]bool
 	broadcast  chan []byte
-	send       chan map[string]interface{}
+	send       chan []byte
 	register   chan *Client
 	unregister chan *Client
 }
@@ -37,6 +37,7 @@ func (h *Hub) Run() {
 			// log.Println(client.)
 
 			str := client.conn.RemoteAddr().String()
+			client.id = getRandomString(16)
 			log.Println(str)
 			h.clients[client] = true
 		case client := <-h.unregister:
@@ -53,10 +54,7 @@ func (h *Hub) Run() {
 					delete(h.clients, client)
 				}
 			}
+
 		}
 	}
-}
-
-func register() {
-
 }

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -9,15 +9,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	ON_CONNECT          = "ON_CONNECT"
-	ON_DISCONNECT       = "ON_DISCONNECT"
-	SEND_GROUP_MESSAGE  = "ON_CONNECT"
-	SEND_DIRECT_MESSAGE = "ON_CONNECT"
-)
+type WebSocketEvent struct {
+	// Required
+	Event string `json:"event"`
 
-type Message struct {
-	Event   string `json:"event"`
+	//
 	Message string `json:"message"`
 	// FIXME: SenderID should be set on server using token. UserID.
 	SenderID int    `json:"sender_id"`
@@ -44,9 +40,11 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte // Buffered channel of outbound messages.
+	hub   *Hub
+	conn  *websocket.Conn
+	send  chan []byte // Buffered channel of outbound messages.
+	id    string
+	rooms []string
 }
 
 //
@@ -63,21 +61,70 @@ func (c *Client) readPump() {
 		return nil
 	})
 	for {
-		// _, message, err := c.conn.ReadMessage()
-		r := map[string]interface{}
-		err := c.conn.ReadJSON(&r)
+		_, message, err := c.conn.ReadMessage()
 		// messageType, message, err := c.conn.ReadMessage()
 		if err != nil {
+			log.Fatalln(err)
 			if err != nil {
+				log.Fatalln(err)
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					log.Printf("error: %v", err)
 				}
 				break
 			}
 		}
+		// Trim
 		// message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		// message = bytes.TrimSpace(message)
-		c.hub.broadcast <- message
+
+		// Broadcate a messsage
+		// c.hub.broadcast <- message
+
+		// Create room
+		var e *WebSocketEvent
+		err = json.Unmarshal(message, &e)
+		if err != nil {
+			log.Fatalln(err)
+			break
+		}
+
+		switch e.Event {
+		case "connect":
+			// {"event": "connect"}
+			log.Println("connect")
+		case "disconnect":
+			log.Println("disconnect")
+		case "room":
+			// {"event": "room"}
+			log.Println(c.rooms)
+		case "room/join":
+			// {"event": "room/join", "room_id": "BpLnfgDsc3WD9F3q"}
+			// rooms
+			// joinRoom(c, room)
+			for _, r := range rooms {
+				if r.RoomID == e.RoomID {
+					r.Users = append(r.Users, c)
+					log.Println("RoomID", r.RoomID)
+					log.Println("users: ", len(r.Users))
+				}
+			}
+		case "room/create":
+			// {"event": "room/create"}
+			log.Println("room/create")
+			room := createRoom()
+			c.rooms = append(c.rooms, room.RoomID)
+			joinRoom(c, room)
+			log.Println("ID: ", c.id)
+		case "room/msg/send":
+			log.Println("room/msg/send")
+
+		case "dm/send":
+			log.Println("dm/send")
+
+		default:
+		}
+
+		// Send users a event
 	}
 }
 
@@ -98,6 +145,7 @@ func (c *Client) writePump() {
 
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
+				log.Fatalln(err)
 				return
 			}
 			w.Write(message)
@@ -126,7 +174,8 @@ func ServeWs(h *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: h, conn: conn, send: make(chan []byte, 256)}
+	// client := &Client{hub: h, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: h, conn: conn, send: make(chan []byte)}
 	client.hub.register <- client
 
 	go client.writePump()

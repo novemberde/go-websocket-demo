@@ -7,6 +7,7 @@ import "time"
 type Room struct {
 	RoomID    string    `dynamo:"room_id"`    // Hash key, a.k.a. partition key(pk)
 	CreatedAt time.Time `dynamo:"created_at"` // Range key, a.k.a. sort key(sk)
+	Users     []*Client
 }
 
 // Message Message table on DynamoDB

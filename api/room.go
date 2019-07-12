@@ -3,16 +3,33 @@ package api
 import (
 	"log"
 	"math/rand"
+	"time"
 )
 
-func createRoom() {
-	roomID := createRoomID(16)
-	log.Println(roomID)
+var (
+	rooms = []Room{}
+)
 
-	// TODO: Be sure creating a unique chat room id.
+func joinRoom(c *Client, room *Room) {
+	room.Users = append(room.Users, c)
 }
 
-func createRoomID(strLen int) string {
+func createRoom() *Room {
+	roomID := getRandomString(24)
+	log.Println(roomID)
+	room := Room{
+		RoomID:    roomID,
+		CreatedAt: time.Now(),
+	}
+	rooms = append(rooms, room)
+
+	log.Println(len(rooms))
+	// TODO: Be sure creating a unique chat room id. Check the id on database
+
+	return &room
+}
+
+func getRandomString(strLen int) string {
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 	b := make([]byte, strLen)
