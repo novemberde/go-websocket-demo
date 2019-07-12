@@ -63,7 +63,9 @@ func (c *Client) readPump() {
 		return nil
 	})
 	for {
-		_, message, err := c.conn.ReadMessage()
+		// _, message, err := c.conn.ReadMessage()
+		r := map[string]interface{}
+		err := c.conn.ReadJSON(&r)
 		// messageType, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if err != nil {
@@ -74,7 +76,7 @@ func (c *Client) readPump() {
 			}
 		}
 		// message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		message = bytes.TrimSpace(message)
+		// message = bytes.TrimSpace(message)
 		c.hub.broadcast <- message
 	}
 }
