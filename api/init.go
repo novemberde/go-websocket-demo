@@ -1,9 +1,12 @@
 package api
 
+import "log"
+
 // Hub Structure for Managing clients
 type Hub struct {
 	clients    map[*Client]bool
 	broadcast  chan []byte
+	send       chan map[string]interface{}
 	register   chan *Client
 	unregister chan *Client
 }
@@ -23,6 +26,8 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.register:
 			// log.Println(client.)
+			str := client.conn.RemoteAddr().String()
+			log.Println(str)
 			h.clients[client] = true
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
@@ -40,4 +45,8 @@ func (h *Hub) Run() {
 			}
 		}
 	}
+}
+
+func register() {
+
 }
